@@ -44,41 +44,39 @@ export default async function Home() {
       </section>
 
       {/* Barberos */}
-      <section id="barberos" className="max-w-6xl mx-auto px-6 py-20">
-        <div className="mb-12 text-center">
+      <section id="barberos" className="max-w-lg mx-auto px-6 py-16">
+        <div className="mb-8 text-center">
           <p className="font-serif italic mb-2 text-lg" style={{ color: 'var(--gold)' }}>Nuestro equipo</p>
-          <h2 className="font-serif text-4xl sm:text-5xl font-bold">Elige tu Barbero</h2>
+          <h2 className="font-serif text-4xl font-bold">Elige tu Barbero</h2>
         </div>
 
         {!barberos || barberos.length === 0 ? (
           <p className="text-center text-white/40 py-16">No hay barberos disponibles.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="flex flex-col gap-3">
             {(barberos as Barbero[]).map((barbero) => (
               <Link
                 key={barbero.id}
                 href={`/reservar/${barbero.id}`}
-                className="group block text-center transition-all duration-300 active:scale-[0.97] overflow-hidden"
-                style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-lg)', backdropFilter: 'blur(20px)' }}
+                className="group flex items-center gap-4 p-4 transition-all duration-200 active:scale-[0.98]"
+                style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius)', backdropFilter: 'blur(20px)' }}
               >
-                <div className="h-52 flex items-center justify-center text-6xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                <div
+                  className="w-14 h-14 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-2xl"
+                  style={{ background: 'rgba(255,255,255,0.05)' }}
+                >
                   {barbero.foto_url
                     ? <img src={barbero.foto_url} alt={barbero.nombre} className="w-full h-full object-cover" />
                     : <span style={{ color: 'var(--gold)', opacity: 0.5 }}>✂</span>
                   }
                 </div>
-                <div className="p-6">
-                  <h3 className="font-serif text-2xl font-semibold mb-2">{barbero.nombre}</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-serif text-xl font-semibold">{barbero.nombre}</h3>
                   {barbero.descripcion && (
-                    <p className="text-sm text-white/50 mb-5 leading-relaxed">{barbero.descripcion}</p>
+                    <p className="text-sm text-white/40 truncate">{barbero.descripcion}</p>
                   )}
-                  <span
-                    className="inline-block text-sm font-medium px-6 py-2.5 transition-all"
-                    style={{ border: '1px solid var(--gold-border)', color: 'var(--gold)', background: 'var(--gold-glass)', borderRadius: 'var(--radius-sm)' }}
-                  >
-                    Ver disponibilidad
-                  </span>
                 </div>
+                <span className="text-lg shrink-0" style={{ color: 'var(--gold)' }}>›</span>
               </Link>
             ))}
           </div>
