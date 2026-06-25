@@ -9,23 +9,27 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className="min-h-screen bg-[#f5f5f5] text-[#111]">
-        <header className="bg-white/80 backdrop-blur-md border-b border-black/5 px-5 py-4 sticky top-0 z-10">
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
-            <a href="/" className="text-base font-semibold tracking-tight">
-              ✂ BarberShop
+      <body className="min-h-screen" style={{ background: 'var(--dark)', color: '#fff' }}>
+        <header className="fixed top-0 left-0 right-0 z-50 border-b" style={{ background: 'rgba(13,13,13,0.92)', borderColor: 'var(--dark-border)', backdropFilter: 'blur(12px)' }}>
+          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="/" className="font-serif text-lg tracking-wide text-white">
+              BARBER<span style={{ color: 'var(--gold)' }}>SHOP</span>
             </a>
-            <a
-              href="/admin"
-              className="text-sm text-[#888] hover:text-[#111] transition-colors"
-            >
-              Admin
-            </a>
+            <div className="flex items-center gap-8">
+              <a href="/" className="text-xs tracking-widest uppercase text-white/60 hover:text-white transition-colors hidden sm:block">Inicio</a>
+              <a href="/#barberos" className="text-xs tracking-widest uppercase text-white/60 hover:text-white transition-colors hidden sm:block">Barberos</a>
+              <a href="/admin" className="text-xs tracking-widest uppercase text-white/60 hover:text-white transition-colors hidden sm:block">Admin</a>
+              <a
+                href="/#barberos"
+                className="text-xs tracking-widest uppercase px-5 py-2.5 font-medium transition-colors"
+                style={{ background: 'var(--gold)', color: '#0d0d0d' }}
+              >
+                Reservar
+              </a>
+            </div>
           </div>
         </header>
-        <main className="max-w-5xl mx-auto px-5 sm:px-8 py-8">
-          {children}
-        </main>
+        <main>{children}</main>
       </body>
     </html>
   )

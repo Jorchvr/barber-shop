@@ -18,21 +18,26 @@ export default async function ReservarPage({
   if (!barbero) notFound()
 
   return (
-    <div>
-      <div className="mb-7">
-        <a href="/" className="text-[#888] text-sm flex items-center gap-1 mb-4">
-          ‹ Volver
-        </a>
-        <h1 className="text-2xl font-bold">{barbero.nombre}</h1>
-        {barbero.descripcion && (
-          <p className="text-[#888] text-sm mt-0.5">{barbero.descripcion}</p>
-        )}
+    <div className="pt-24 pb-16 min-h-screen" style={{ background: 'var(--dark)' }}>
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="mb-10">
+          <a href="/" className="text-xs tracking-widest uppercase text-white/40 hover:text-white/70 transition-colors">
+            ← Volver
+          </a>
+          <div className="mt-6 pb-6 border-b" style={{ borderColor: 'var(--dark-border)' }}>
+            <p className="font-serif italic mb-1" style={{ color: 'var(--gold)' }}>Reservar cita</p>
+            <h1 className="font-serif text-4xl font-bold">{barbero.nombre}</h1>
+            {barbero.descripcion && (
+              <p className="text-white/50 mt-2">{barbero.descripcion}</p>
+            )}
+          </div>
+        </div>
+        <ReservaForm
+          barbero={barbero}
+          servicios={servicios ?? []}
+          horarios={horarios ?? []}
+        />
       </div>
-      <ReservaForm
-        barbero={barbero}
-        servicios={servicios ?? []}
-        horarios={horarios ?? []}
-      />
     </div>
   )
 }

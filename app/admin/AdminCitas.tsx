@@ -5,9 +5,9 @@ import { supabase } from '@/lib/supabase'
 import type { Cita } from '@/types'
 
 const ESTADO = {
-  pendiente: { label: 'Pendiente', dot: 'bg-yellow-400' },
-  completada: { label: 'Lista', dot: 'bg-green-400' },
-  cancelada: { label: 'Cancelada', dot: 'bg-[#ccc]' },
+  pendiente: { label: 'Pendiente', color: '#b5965a' },
+  completada: { label: 'Completada', color: '#4ade80' },
+  cancelada: { label: 'Cancelada', color: 'rgba(255,255,255,0.25)' },
 }
 
 export default function AdminCitas({ citas: citasIniciales }: { citas: Cita[] }) {
@@ -17,67 +17,69 @@ export default function AdminCitas({ citas: citasIniciales }: { citas: Cita[] })
   async function cambiarEstado(id: string, estado: Cita['estado']) {
     setCargando(id)
     const { error } = await supabase.from('citas').update({ estado }).eq('id', id)
-    if (!error) {
-      setCitas((prev) => prev.map((c) => (c.id === id ? { ...c, estado } : c)))
-    }
+    if (!error) setCitas((prev) => prev.map((c) => (c.id === id ? { ...c, estado } : c)))
     setCargando(null)
   }
 
   if (citas.length === 0) {
     return (
-      <div className="text-center py-16 text-[#bbb] text-sm">
-        Sin citas para este día.
+      <div className="text-center py-20 border" style={{ borderColor: 'var(--dark-border)' }}>
+        <p className="font-serif italic text-white/30 text-lg">Sin citas para mostrar</p>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {citas.map((cita) => {
         const e = ESTADO[cita.estado]
         const ocupado = cargando === cita.id
         return (
           <div
             key={cita.id}
-            className={`bg-white rounded-2xl p-4 shadow-sm transition-opacity ${ocupado ? 'opacity-50' : ''}`}
+            className="border p-5 transition-opacity"
+            style={{ borderColor: 'var(--dark-border)', background: 'var(--dark-card)', opacity: ocupado ? 0.5 : 1 }}
           >
-            <div className="flex items-start justify-between gap-3 mb-3">
-              <div className="flex items-start gap-3">
-                <div className="shrink-0 pt-0.5 text-right w-14">
-                  <span className="text-base font-bold text-[#111] block leading-tight">
-                    {cita.hora.slice(0, 5)}
-                  </span>
-                  <span className="text-[10px] text-[#bbb] block">
-                    {new Date(cita.fecha + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
-                  </span>
-                </div>
-                <div>
-                  <div className="font-semibold text-sm text-[#111]">{cita.cliente_nombre}</div>
-                  <div className="text-[#888] text-xs mt-0.5">
-                    {(cita as any).servicios?.nombre} · {(cita as any).barberos?.nombre}
-                  </div>
-                  <div className="text-[#aaa] text-xs">{cita.cliente_telefono || 'Sin teléfono'}</div>
-                </div>
+            {/* Hora y fecha */}
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <span className="font-serif text-2xl font-bold" style={{ color: 'var(--gold)' }}>
+                  {cita.hora.slice(0, 5)}
+                </span>
+                <span className="text-white/30 text-xs ml-2">
+                  {new Date(cita.fecha + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
+                </span>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${e.dot}`} />
-                <span className="text-xs text-[#888]">{e.label}</span>
-              </div>
+              <span className="text-xs font-medium" style={{ color: e.color }}>
+                {e.label}
+              </span>
             </div>
 
+            {/* Info cliente */}
+            <div className="border-t pt-4 mb-4" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+              <p className="font-medium text-sm text-white">{cita.cliente_nombre}</p>
+              <p className="text-white/40 text-xs mt-0.5">{(cita as any).servicios?.nombre} · {(cita as any).barberos?.nombre}</p>
+              {cita.cliente_telefono && (
+                <p className="text-white/30 text-xs mt-0.5">{cita.cliente_telefono}</p>
+              )}
+            </div>
+
+            {/* Acciones */}
             {cita.estado === 'pendiente' && (
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => cambiarEstado(cita.id, 'completada')}
                   disabled={ocupado}
-                  className="flex-1 bg-[rgba(0,0,0,0.06)] text-[#111] text-xs font-medium py-2 rounded-lg active:opacity-70 transition-opacity"
+                  className="py-2 text-xs tracking-wider uppercase font-medium transition-opacity hover:opacity-80 disabled:opacity-40"
+                  style={{ background: 'var(--gold)', color: '#0d0d0d' }}
                 >
-                  Marcar lista
+                  Completar
                 </button>
                 <button
                   onClick={() => cambiarEstado(cita.id, 'cancelada')}
                   disabled={ocupado}
-                  className="flex-1 bg-[rgba(0,0,0,0.04)] text-[#aaa] text-xs font-medium py-2 rounded-lg active:opacity-70 transition-opacity"
+                  className="py-2 text-xs tracking-wider uppercase font-medium border text-white/40 hover:text-white transition-colors disabled:opacity-40"
+                  style={{ borderColor: 'var(--dark-border)' }}
                 >
                   Cancelar
                 </button>
@@ -87,7 +89,8 @@ export default function AdminCitas({ citas: citasIniciales }: { citas: Cita[] })
               <button
                 onClick={() => cambiarEstado(cita.id, 'pendiente')}
                 disabled={ocupado}
-                className="w-full bg-[rgba(0,0,0,0.04)] text-[#aaa] text-xs font-medium py-2 rounded-lg active:opacity-70 transition-opacity"
+                className="w-full py-2 text-xs tracking-wider uppercase font-medium border text-white/30 hover:text-white transition-colors disabled:opacity-40"
+                style={{ borderColor: 'var(--dark-border)' }}
               >
                 Reactivar
               </button>
