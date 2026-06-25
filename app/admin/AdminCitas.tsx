@@ -5,9 +5,9 @@ import { supabase } from '@/lib/supabase'
 import type { Cita } from '@/types'
 
 const ESTADO = {
-  pendiente: { label: 'Pendiente', color: '#b5965a' },
+  pendiente: { label: 'Pendiente', color: 'var(--gold)' },
   completada: { label: 'Completada', color: '#4ade80' },
-  cancelada: { label: 'Cancelada', color: 'rgba(255,255,255,0.25)' },
+  cancelada: { label: 'Cancelada', color: 'rgba(255,255,255,0.3)' },
 }
 
 export default function AdminCitas({ citas: citasIniciales }: { citas: Cita[] }) {
@@ -23,45 +23,50 @@ export default function AdminCitas({ citas: citasIniciales }: { citas: Cita[] })
 
   if (citas.length === 0) {
     return (
-      <div className="text-center py-20 border" style={{ borderColor: 'var(--dark-border)' }}>
-        <p className="font-serif italic text-white/30 text-lg">Sin citas para mostrar</p>
+      <div
+        className="text-center py-20"
+        style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-lg)' }}
+      >
+        <p className="font-serif italic text-white/30 text-xl">Sin citas para mostrar</p>
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {citas.map((cita) => {
         const e = ESTADO[cita.estado]
         const ocupado = cargando === cita.id
         return (
           <div
             key={cita.id}
-            className="border p-5 transition-opacity"
-            style={{ borderColor: 'var(--dark-border)', background: 'var(--dark-card)', opacity: ocupado ? 0.5 : 1 }}
+            className="p-5 transition-opacity text-center"
+            style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius)', backdropFilter: 'blur(20px)', opacity: ocupado ? 0.5 : 1 }}
           >
-            {/* Hora y fecha */}
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <span className="font-serif text-2xl font-bold" style={{ color: 'var(--gold)' }}>
-                  {cita.hora.slice(0, 5)}
-                </span>
-                <span className="text-white/30 text-xs ml-2">
-                  {new Date(cita.fecha + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short' })}
-                </span>
-              </div>
-              <span className="text-xs font-medium" style={{ color: e.color }}>
-                {e.label}
+            {/* Hora */}
+            <div className="mb-1">
+              <span className="font-serif text-3xl font-bold" style={{ color: 'var(--gold)' }}>
+                {cita.hora.slice(0, 5)}
               </span>
             </div>
+            <span className="text-white/30 text-xs">
+              {new Date(cita.fecha + 'T12:00:00').toLocaleDateString('es-MX', { weekday: 'short', day: '2-digit', month: 'short' })}
+            </span>
 
-            {/* Info cliente */}
-            <div className="border-t pt-4 mb-4" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-              <p className="font-medium text-sm text-white">{cita.cliente_nombre}</p>
-              <p className="text-white/40 text-xs mt-0.5">{(cita as any).servicios?.nombre} · {(cita as any).barberos?.nombre}</p>
-              {cita.cliente_telefono && (
-                <p className="text-white/30 text-xs mt-0.5">{cita.cliente_telefono}</p>
-              )}
+            {/* Divider */}
+            <div className="my-4 border-t" style={{ borderColor: 'var(--dark-border)' }} />
+
+            {/* Cliente */}
+            <p className="font-semibold text-white mb-1">{cita.cliente_nombre}</p>
+            <p className="text-white/40 text-sm">{(cita as any).servicios?.nombre}</p>
+            <p className="text-white/30 text-xs mt-0.5">{(cita as any).barberos?.nombre}</p>
+            {cita.cliente_telefono && (
+              <p className="text-white/20 text-xs mt-0.5">{cita.cliente_telefono}</p>
+            )}
+
+            {/* Estado */}
+            <div className="mt-3 mb-4">
+              <span className="text-xs font-medium" style={{ color: e.color }}>{e.label}</span>
             </div>
 
             {/* Acciones */}
@@ -70,16 +75,16 @@ export default function AdminCitas({ citas: citasIniciales }: { citas: Cita[] })
                 <button
                   onClick={() => cambiarEstado(cita.id, 'completada')}
                   disabled={ocupado}
-                  className="py-2 text-xs tracking-wider uppercase font-medium transition-opacity hover:opacity-80 disabled:opacity-40"
-                  style={{ background: 'var(--gold)', color: '#0d0d0d' }}
+                  className="py-2.5 text-xs font-medium transition-all hover:opacity-80 disabled:opacity-40 active:scale-95"
+                  style={{ border: '1px solid var(--gold-border)', color: 'var(--gold)', background: 'var(--gold-glass)', borderRadius: 'var(--radius-sm)' }}
                 >
                   Completar
                 </button>
                 <button
                   onClick={() => cambiarEstado(cita.id, 'cancelada')}
                   disabled={ocupado}
-                  className="py-2 text-xs tracking-wider uppercase font-medium border text-white/40 hover:text-white transition-colors disabled:opacity-40"
-                  style={{ borderColor: 'var(--dark-border)' }}
+                  className="py-2.5 text-xs font-medium transition-all hover:opacity-70 disabled:opacity-40 active:scale-95"
+                  style={{ border: '1px solid var(--dark-border)', color: 'rgba(255,255,255,0.4)', borderRadius: 'var(--radius-sm)' }}
                 >
                   Cancelar
                 </button>
@@ -89,8 +94,8 @@ export default function AdminCitas({ citas: citasIniciales }: { citas: Cita[] })
               <button
                 onClick={() => cambiarEstado(cita.id, 'pendiente')}
                 disabled={ocupado}
-                className="w-full py-2 text-xs tracking-wider uppercase font-medium border text-white/30 hover:text-white transition-colors disabled:opacity-40"
-                style={{ borderColor: 'var(--dark-border)' }}
+                className="w-full py-2.5 text-xs font-medium transition-all hover:opacity-70 disabled:opacity-40 active:scale-95"
+                style={{ border: '1px solid var(--dark-border)', color: 'rgba(255,255,255,0.3)', borderRadius: 'var(--radius-sm)' }}
               >
                 Reactivar
               </button>

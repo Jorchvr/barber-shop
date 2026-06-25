@@ -19,18 +19,16 @@ export default async function ReservarPage({
 
   return (
     <div className="pt-24 pb-16 min-h-screen" style={{ background: 'var(--dark)' }}>
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="mb-10">
-          <a href="/" className="text-xs tracking-widest uppercase text-white/40 hover:text-white/70 transition-colors">
+      <div className="max-w-4xl mx-auto px-6">
+        <div className="mb-10 text-center">
+          <a href="/" className="inline-block text-sm text-white/40 hover:text-white/70 transition-colors mb-6">
             ← Volver
           </a>
-          <div className="mt-6 pb-6 border-b" style={{ borderColor: 'var(--dark-border)' }}>
-            <p className="font-serif italic mb-1" style={{ color: 'var(--gold)' }}>Reservar cita</p>
-            <h1 className="font-serif text-4xl font-bold">{barbero.nombre}</h1>
-            {barbero.descripcion && (
-              <p className="text-white/50 mt-2">{barbero.descripcion}</p>
-            )}
-          </div>
+          <p className="font-serif italic mb-2 text-lg" style={{ color: 'var(--gold)' }}>Reservar cita</p>
+          <h1 className="font-serif text-4xl sm:text-5xl font-bold">{barbero.nombre}</h1>
+          {barbero.descripcion && (
+            <p className="text-white/50 mt-3 text-lg">{barbero.descripcion}</p>
+          )}
         </div>
         <ReservaForm
           barbero={barbero}

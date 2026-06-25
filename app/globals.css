@@ -3,10 +3,14 @@
 
 :root {
   --gold: #b5965a;
-  --gold-light: #cca96a;
+  --gold-glass: rgba(181,150,90,0.15);
+  --gold-border: rgba(181,150,90,0.4);
   --dark: #0d0d0d;
-  --dark-card: #161616;
-  --dark-border: rgba(255,255,255,0.08);
+  --dark-card: rgba(255,255,255,0.05);
+  --dark-border: rgba(255,255,255,0.1);
+  --radius: 20px;
+  --radius-sm: 14px;
+  --radius-lg: 28px;
 }
 
 body {

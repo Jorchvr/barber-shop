@@ -29,26 +29,29 @@ function generarHoras(inicio: string, fin: string, duracion: number): string[] {
   return horas
 }
 
-function Label({ num, texto, activo }: { num: number; texto: string; activo: boolean }) {
+function Paso({ num, texto, activo }: { num: number; texto: string; activo: boolean }) {
   return (
-    <div className="flex items-center gap-3 mb-4">
+    <div className="flex items-center justify-center gap-3 mb-5">
       <span
-        className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all"
+        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all"
         style={activo
-          ? { background: 'var(--gold)', color: '#0d0d0d' }
-          : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)' }
+          ? { background: 'var(--gold-glass)', border: '1px solid var(--gold-border)', color: 'var(--gold)' }
+          : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.25)' }
         }
       >
         {num}
       </span>
-      <span
-        className="text-xs tracking-widest uppercase font-medium transition-colors"
-        style={{ color: activo ? '#fff' : 'rgba(255,255,255,0.3)' }}
-      >
+      <span className="font-serif text-xl font-semibold" style={{ color: activo ? '#fff' : 'rgba(255,255,255,0.25)' }}>
         {texto}
       </span>
     </div>
   )
+}
+
+const glassBtn = {
+  active: { border: '1px solid var(--gold-border)', color: 'var(--gold)', background: 'rgba(181,150,90,0.25)', borderRadius: 'var(--radius-sm)' } as React.CSSProperties,
+  idle: { border: '1px solid var(--dark-border)', color: 'rgba(255,255,255,0.8)', background: 'var(--dark-card)', borderRadius: 'var(--radius-sm)', backdropFilter: 'blur(10px)' } as React.CSSProperties,
+  disabled: { border: '1px solid rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.2)', background: 'transparent', borderRadius: 'var(--radius-sm)', cursor: 'not-allowed' } as React.CSSProperties,
 }
 
 export default function ReservaForm({ barbero, servicios, horarios }: Props) {
@@ -73,8 +76,7 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
     setFechaSeleccionada(dia)
     setHoraSeleccionada(null)
     const { data } = await supabase
-      .from('citas')
-      .select('hora')
+      .from('citas').select('hora')
       .eq('barbero_id', barbero.id)
       .eq('fecha', format(dia, 'yyyy-MM-dd'))
       .neq('estado', 'cancelada')
@@ -86,11 +88,7 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
     if (!fechaSeleccionada || !servicioSeleccionado) return []
     const horarioDia = horarios.find((h) => h.dia_semana === fechaSeleccionada.getDay())
     if (!horarioDia) return []
-    return generarHoras(
-      horarioDia.hora_inicio.slice(0, 5),
-      horarioDia.hora_fin.slice(0, 5),
-      servicioSeleccionado.duracion_min
-    )
+    return generarHoras(horarioDia.hora_inicio.slice(0, 5), horarioDia.hora_fin.slice(0, 5), servicioSeleccionado.duracion_min)
   }
 
   async function confirmarCita() {
@@ -123,29 +121,14 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
 
     const fechaLegible = format(fechaSeleccionada, "EEEE d 'de' MMMM", { locale: es })
     const notifs: Promise<void>[] = []
-
     if (barbero.telefono) {
-      notifs.push(fetch('/api/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: barbero.telefono,
-          mensaje: `Nueva cita\nCliente: ${nombre.trim()}\nServicio: ${servicioSeleccionado.nombre}\nFecha: ${fechaLegible} a las ${horaSeleccionada}${telefono.trim() ? `\nTel: ${telefono.trim()}` : ''}`,
-        }),
-      }).then(() => {}))
+      notifs.push(fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: barbero.telefono, mensaje: `Nueva cita\nCliente: ${nombre.trim()}\nServicio: ${servicioSeleccionado.nombre}\nFecha: ${fechaLegible} a las ${horaSeleccionada}${telefono.trim() ? `\nTel: ${telefono.trim()}` : ''}` }) }).then(() => {}))
     }
-
     if (telefono.trim()) {
-      notifs.push(fetch('/api/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: telefono.trim(),
-          mensaje: `Hola ${nombre.trim()}, tu cita está confirmada.\nBarbero: ${barbero.nombre}\nServicio: ${servicioSeleccionado.nombre}\nFecha: ${fechaLegible} a las ${horaSeleccionada}`,
-        }),
-      }).then(() => {}))
+      notifs.push(fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: telefono.trim(), mensaje: `Hola ${nombre.trim()}, tu cita está confirmada.\nBarbero: ${barbero.nombre}\nServicio: ${servicioSeleccionado.nombre}\nFecha: ${fechaLegible} a las ${horaSeleccionada}` }) }).then(() => {}))
     }
-
     await Promise.allSettled(notifs)
     setCargando(false)
     setCitaCreada(true)
@@ -153,23 +136,23 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
 
   if (citaCreada) {
     return (
-      <div className="text-center py-20">
+      <div className="text-center py-16 px-6">
         <div
-          className="w-16 h-16 rounded-full flex items-center justify-center text-2xl mx-auto mb-6"
-          style={{ border: '1px solid var(--gold)', color: 'var(--gold)' }}
+          className="w-20 h-20 rounded-full flex items-center justify-center text-3xl mx-auto mb-6"
+          style={{ background: 'var(--gold-glass)', border: '1px solid var(--gold-border)' }}
         >
           ✓
         </div>
-        <p className="font-serif italic mb-2" style={{ color: 'var(--gold)' }}>Reserva confirmada</p>
-        <h2 className="font-serif text-3xl font-bold mb-3">¡Hasta pronto, {nombre}!</h2>
-        <p className="text-white/50 mb-1">{servicioSeleccionado?.nombre} con {barbero.nombre}</p>
-        <p className="text-white/50 mb-10 capitalize">
+        <p className="font-serif italic mb-2 text-lg" style={{ color: 'var(--gold)' }}>Reserva confirmada</p>
+        <h2 className="font-serif text-4xl font-bold mb-3">¡Hasta pronto, {nombre}!</h2>
+        <p className="text-white/50 text-lg mb-1">{servicioSeleccionado?.nombre} con {barbero.nombre}</p>
+        <p className="text-white/40 mb-10 capitalize">
           {fechaSeleccionada && format(fechaSeleccionada, "EEEE d 'de' MMMM", { locale: es })} · {horaSeleccionada}
         </p>
         <a
           href="/"
-          className="inline-block text-xs tracking-widest uppercase px-8 py-4 font-medium transition-opacity hover:opacity-90"
-          style={{ background: 'var(--gold)', color: '#0d0d0d' }}
+          className="inline-block text-sm font-medium px-10 py-4 transition-all hover:opacity-80"
+          style={{ border: '1px solid var(--gold-border)', color: 'var(--gold)', background: 'var(--gold-glass)', borderRadius: 'var(--radius-lg)' }}
         >
           Volver al inicio
         </a>
@@ -177,38 +160,32 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
     )
   }
 
-  const resumenVisible = servicioSeleccionado || fechaSeleccionada || horaSeleccionada
-
   return (
-    <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-12">
-      {/* Pasos */}
+    <div className="lg:grid lg:grid-cols-[1fr_280px] lg:gap-10">
       <div>
-        {/* Paso 1 */}
+        {/* Paso 1: Servicio */}
         <div className="mb-10">
-          <Label num={1} texto="Tipo de corte" activo={paso >= 1} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-9">
+          <Paso num={1} texto="Tipo de corte" activo={paso >= 1} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {servicios.map((s) => (
               <button
                 key={s.id}
                 onClick={() => { setServicioSeleccionado(s); setPaso(2) }}
-                className="text-left px-5 py-4 border transition-all duration-200"
-                style={servicioSeleccionado?.id === s.id
-                  ? { background: 'var(--gold)', borderColor: 'var(--gold)', color: '#0d0d0d' }
-                  : { background: 'var(--dark-card)', borderColor: 'var(--dark-border)', color: '#fff' }
-                }
+                className="text-center p-5 transition-all duration-200 active:scale-95"
+                style={servicioSeleccionado?.id === s.id ? glassBtn.active : glassBtn.idle}
               >
-                <div className="font-medium text-sm">{s.nombre}</div>
-                <div className="text-xs mt-1 opacity-60">{s.duracion_min} min · ${s.precio}</div>
+                <div className="font-semibold text-base mb-1">{s.nombre}</div>
+                <div className="text-sm opacity-50">{s.duracion_min} min · ${s.precio}</div>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Paso 2 */}
+        {/* Paso 2: Fecha */}
         {paso >= 2 && (
           <div className="mb-10">
-            <Label num={2} texto="Fecha" activo={paso >= 2} />
-            <div className="flex gap-2 overflow-x-auto pb-2 pl-9">
+            <Paso num={2} texto="Fecha" activo={paso >= 2} />
+            <div className="flex gap-2 overflow-x-auto pb-2">
               {dias.map((dia) => {
                 const disponible = diaDisponible(dia)
                 const seleccionado = fechaSeleccionada && isSameDay(dia, fechaSeleccionada)
@@ -217,16 +194,11 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
                     key={dia.toISOString()}
                     disabled={!disponible}
                     onClick={() => seleccionarFecha(dia)}
-                    className="flex flex-col items-center px-4 py-3 shrink-0 border transition-all duration-200 min-w-[60px]"
-                    style={seleccionado
-                      ? { background: 'var(--gold)', borderColor: 'var(--gold)', color: '#0d0d0d' }
-                      : disponible
-                        ? { background: 'var(--dark-card)', borderColor: 'var(--dark-border)', color: '#fff' }
-                        : { background: 'transparent', borderColor: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.2)', cursor: 'not-allowed' }
-                    }
+                    className="flex flex-col items-center px-4 py-3 shrink-0 min-w-[64px] transition-all duration-200 active:scale-95"
+                    style={seleccionado ? glassBtn.active : disponible ? glassBtn.idle : glassBtn.disabled}
                   >
-                    <span className="text-xs font-medium capitalize">{format(dia, 'EEE', { locale: es })}</span>
-                    <span className="text-xs mt-0.5 opacity-70">{format(dia, 'd MMM', { locale: es })}</span>
+                    <span className="text-sm font-medium capitalize">{format(dia, 'EEE', { locale: es })}</span>
+                    <span className="text-xs mt-1 opacity-60">{format(dia, 'd MMM', { locale: es })}</span>
                   </button>
                 )
               })}
@@ -234,11 +206,11 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
           </div>
         )}
 
-        {/* Paso 3 */}
+        {/* Paso 3: Hora */}
         {paso >= 3 && fechaSeleccionada && (
           <div className="mb-10">
-            <Label num={3} texto="Hora" activo={paso >= 3} />
-            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 pl-9">
+            <Paso num={3} texto="Hora" activo={paso >= 3} />
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
               {horasDelDia().map((hora) => {
                 const ocupada = citasOcupadas.includes(hora)
                 const seleccionada = horaSeleccionada === hora
@@ -247,13 +219,8 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
                     key={hora}
                     disabled={ocupada}
                     onClick={() => { setHoraSeleccionada(hora); setPaso(4) }}
-                    className="py-3 text-sm font-medium border transition-all duration-200"
-                    style={seleccionada
-                      ? { background: 'var(--gold)', borderColor: 'var(--gold)', color: '#0d0d0d' }
-                      : ocupada
-                        ? { background: 'transparent', borderColor: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.2)', cursor: 'not-allowed', textDecoration: 'line-through' }
-                        : { background: 'var(--dark-card)', borderColor: 'var(--dark-border)', color: '#fff' }
-                    }
+                    className="py-3 text-sm font-medium transition-all duration-200 active:scale-95"
+                    style={seleccionada ? glassBtn.active : ocupada ? { ...glassBtn.disabled, textDecoration: 'line-through' } : glassBtn.idle}
                   >
                     {hora}
                   </button>
@@ -263,47 +230,43 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
           </div>
         )}
 
-        {/* Paso 4 */}
+        {/* Paso 4: Datos */}
         {paso >= 4 && horaSeleccionada && (
           <div className="mb-10">
-            <Label num={4} texto="Tus datos" activo={paso >= 4} />
-            <div className="pl-9 space-y-3 max-w-md">
+            <Paso num={4} texto="Tus datos" activo={paso >= 4} />
+            <div className="space-y-3 max-w-md mx-auto">
               <input
                 type="text"
                 placeholder="Tu nombre *"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className="w-full px-4 py-3 text-sm text-white placeholder-white/30 border focus:outline-none transition-colors"
-                style={{ background: 'var(--dark-card)', borderColor: 'var(--dark-border)' }}
-                onFocus={e => e.target.style.borderColor = 'var(--gold)'}
-                onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}
+                className="w-full px-5 py-4 text-base text-white placeholder-white/30 focus:outline-none transition-all text-center"
+                style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-sm)', backdropFilter: 'blur(10px)' }}
               />
               <input
                 type="tel"
                 placeholder="Tu teléfono (opcional)"
                 value={telefono}
                 onChange={(e) => setTelefono(e.target.value)}
-                className="w-full px-4 py-3 text-sm text-white placeholder-white/30 border focus:outline-none transition-colors"
-                style={{ background: 'var(--dark-card)', borderColor: 'var(--dark-border)' }}
-                onFocus={e => e.target.style.borderColor = 'var(--gold)'}
-                onBlur={e => e.target.style.borderColor = 'var(--dark-border)'}
+                className="w-full px-5 py-4 text-base text-white placeholder-white/30 focus:outline-none transition-all text-center"
+                style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-sm)', backdropFilter: 'blur(10px)' }}
               />
-              <p className="text-white/30 text-xs pt-1">
-                Si agregas tu teléfono recibirás un mensaje de confirmación.
+              <p className="text-white/30 text-sm text-center pt-1">
+                Con tu teléfono recibirás confirmación por mensaje.
               </p>
 
               {/* Resumen móvil */}
-              <div className="lg:hidden border p-4 mt-2" style={{ borderColor: 'var(--dark-border)', background: 'var(--dark-card)' }}>
+              <div className="lg:hidden p-5 mt-4" style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius)', backdropFilter: 'blur(10px)' }}>
                 <ResumenCita barbero={barbero} servicio={servicioSeleccionado} fecha={fechaSeleccionada} hora={horaSeleccionada} />
               </div>
 
-              {error && <p className="text-red-400 text-xs">{error}</p>}
+              {error && <p className="text-red-400 text-sm text-center">{error}</p>}
 
               <button
                 onClick={confirmarCita}
                 disabled={cargando}
-                className="text-xs tracking-widest uppercase px-8 py-4 font-medium transition-opacity hover:opacity-90 disabled:opacity-40 mt-2"
-                style={{ background: 'var(--gold)', color: '#0d0d0d' }}
+                className="w-full py-4 text-base font-medium transition-all hover:opacity-80 disabled:opacity-40 active:scale-95 mt-2"
+                style={{ border: '1px solid var(--gold-border)', color: 'var(--gold)', background: 'var(--gold-glass)', borderRadius: 'var(--radius-sm)', backdropFilter: 'blur(10px)' }}
               >
                 {cargando ? 'Confirmando...' : `Confirmar Cita · $${servicioSeleccionado?.precio}`}
               </button>
@@ -314,11 +277,14 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
 
       {/* Resumen desktop */}
       <div className="hidden lg:block">
-        <div className="sticky top-28 border p-6" style={{ borderColor: 'var(--dark-border)', background: 'var(--dark-card)' }}>
-          <p className="text-xs tracking-widest uppercase mb-5" style={{ color: 'var(--gold)' }}>Resumen</p>
-          {resumenVisible
+        <div
+          className="sticky top-28 p-6"
+          style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-lg)', backdropFilter: 'blur(20px)' }}
+        >
+          <p className="font-serif italic text-center mb-5 text-base" style={{ color: 'var(--gold)' }}>Resumen</p>
+          {servicioSeleccionado || fechaSeleccionada || horaSeleccionada
             ? <ResumenCita barbero={barbero} servicio={servicioSeleccionado} fecha={fechaSeleccionada} hora={horaSeleccionada} />
-            : <p className="text-white/30 text-sm">Selecciona un servicio para comenzar.</p>
+            : <p className="text-white/30 text-sm text-center">Selecciona un servicio para comenzar.</p>
           }
         </div>
       </div>
@@ -330,16 +296,16 @@ function ResumenCita({ barbero, servicio, fecha, hora }: {
   barbero: Barbero; servicio: Servicio | null; fecha: Date | null; hora: string | null
 }) {
   return (
-    <div className="space-y-3 text-sm">
+    <div className="space-y-3 text-sm text-center">
       <Row label="Barbero" value={barbero.nombre} />
       <Row label="Servicio" value={servicio?.nombre} />
       <Row label="Duración" value={servicio ? `${servicio.duracion_min} min` : undefined} />
       <Row label="Fecha" value={fecha ? format(fecha, "EEE d 'de' MMM", { locale: es }) : undefined} cap />
       <Row label="Hora" value={hora ?? undefined} />
       {servicio && (
-        <div className="flex justify-between pt-3 border-t" style={{ borderColor: 'var(--dark-border)' }}>
-          <span className="text-white/50">Total</span>
-          <span className="font-semibold" style={{ color: 'var(--gold)' }}>${servicio.precio}</span>
+        <div className="pt-3 border-t" style={{ borderColor: 'var(--dark-border)' }}>
+          <span className="text-white/40">Total </span>
+          <span className="font-bold text-lg" style={{ color: 'var(--gold)' }}>${servicio.precio}</span>
         </div>
       )}
     </div>
@@ -349,8 +315,8 @@ function ResumenCita({ barbero, servicio, fecha, hora }: {
 function Row({ label, value, cap }: { label: string; value?: string; cap?: boolean }) {
   if (!value) return null
   return (
-    <div className="flex justify-between border-b pb-3" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-      <span className="text-white/40">{label}</span>
+    <div className="py-2 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+      <span className="text-white/40 block text-xs uppercase tracking-wider mb-0.5">{label}</span>
       <span className={`text-white font-medium ${cap ? 'capitalize' : ''}`}>{value}</span>
     </div>
   )

@@ -14,11 +14,8 @@ export default async function AdminPage({
 
   const [{ data: barberos }, citasResult] = await Promise.all([
     supabase.from('barberos').select('*').eq('activo', true).order('nombre'),
-    supabase
-      .from('citas')
-      .select('*, barberos(nombre), servicios(nombre, precio)')
-      .order('fecha', { ascending: true })
-      .order('hora', { ascending: true }),
+    supabase.from('citas').select('*, barberos(nombre), servicios(nombre, precio)')
+      .order('fecha', { ascending: true }).order('hora', { ascending: true }),
   ])
 
   let citas = citasResult.data ?? []
@@ -31,10 +28,11 @@ export default async function AdminPage({
   return (
     <div className="min-h-screen pt-24 pb-16" style={{ background: 'var(--dark)' }}>
       <div className="max-w-6xl mx-auto px-6">
+
         {/* Header */}
-        <div className="mb-10 pb-6 border-b" style={{ borderColor: 'var(--dark-border)' }}>
-          <p className="font-serif italic mb-1" style={{ color: 'var(--gold)' }}>Panel de administración</p>
-          <h1 className="font-serif text-4xl font-bold">
+        <div className="text-center mb-10">
+          <p className="font-serif italic mb-2 text-lg" style={{ color: 'var(--gold)' }}>Panel de administración</p>
+          <h1 className="font-serif text-4xl sm:text-5xl font-bold">
             {fecha
               ? format(new Date(fecha + 'T12:00:00'), "EEEE d 'de' MMMM", { locale: es })
               : 'Todas las citas'}
@@ -42,33 +40,37 @@ export default async function AdminPage({
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-3 mb-8">
           {[
             { label: 'Total', value: citas.length },
             { label: 'Pendientes', value: pendientes },
             { label: 'Completadas', value: completadas },
-          ].map((stat) => (
-            <div key={stat.label} className="border p-5 text-center" style={{ borderColor: 'var(--dark-border)', background: 'var(--dark-card)' }}>
-              <div className="font-serif text-3xl font-bold mb-1" style={{ color: 'var(--gold)' }}>{stat.value}</div>
-              <div className="text-xs tracking-widest uppercase text-white/40">{stat.label}</div>
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="text-center py-5 px-3"
+              style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius)', backdropFilter: 'blur(10px)' }}
+            >
+              <div className="font-serif text-4xl font-bold mb-1" style={{ color: 'var(--gold)' }}>{s.value}</div>
+              <div className="text-xs uppercase tracking-widest text-white/40">{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Filtros */}
-        <form className="flex flex-wrap gap-2 mb-8">
+        <form className="flex flex-wrap justify-center gap-2 mb-10">
           <input
             type="date"
             name="fecha"
             defaultValue={fecha ?? ''}
-            className="px-4 py-2.5 text-sm border focus:outline-none"
-            style={{ background: 'var(--dark-card)', borderColor: 'var(--dark-border)', color: '#fff' }}
+            className="px-4 py-3 text-sm focus:outline-none text-white"
+            style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-sm)', backdropFilter: 'blur(10px)' }}
           />
           <select
             name="barbero"
             defaultValue={barberoId ?? ''}
-            className="px-4 py-2.5 text-sm border focus:outline-none"
-            style={{ background: 'var(--dark-card)', borderColor: 'var(--dark-border)', color: '#fff' }}
+            className="px-4 py-3 text-sm focus:outline-none text-white"
+            style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-sm)', backdropFilter: 'blur(10px)' }}
           >
             <option value="">Todos los barberos</option>
             {(barberos ?? []).map((b) => (
@@ -77,16 +79,16 @@ export default async function AdminPage({
           </select>
           <button
             type="submit"
-            className="px-6 py-2.5 text-xs tracking-widest uppercase font-medium transition-opacity hover:opacity-90"
-            style={{ background: 'var(--gold)', color: '#0d0d0d' }}
+            className="px-6 py-3 text-sm font-medium transition-all hover:opacity-80"
+            style={{ border: '1px solid var(--gold-border)', color: 'var(--gold)', background: 'var(--gold-glass)', borderRadius: 'var(--radius-sm)' }}
           >
             Filtrar
           </button>
           {(fecha || barberoId) && (
             <a
               href="/admin"
-              className="px-6 py-2.5 text-xs tracking-widest uppercase font-medium border text-white/50 hover:text-white transition-colors"
-              style={{ borderColor: 'var(--dark-border)' }}
+              className="px-6 py-3 text-sm font-medium text-white/40 hover:text-white transition-colors"
+              style={{ border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-sm)' }}
             >
               Limpiar
             </a>
