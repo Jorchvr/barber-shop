@@ -72,8 +72,10 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
   const [citasOcupadas, setCitasOcupadas] = useState<string[]>([])
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
+  const [email, setEmail] = useState('')
   const [cargando, setCargando] = useState(false)
   const [citaCreada, setCitaCreada] = useState(false)
+  const [emailEnviado, setEmailEnviado] = useState(false)
   const [error, setError] = useState('')
 
   const dias = Array.from({ length: DIAS_ADELANTE }, (_, i) => addDays(new Date(), i + 1))
@@ -118,6 +120,7 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
       servicio_id: servicioSeleccionado.id,
       cliente_nombre: nombre.trim(),
       cliente_telefono: telefono.trim() || null,
+      cliente_email: email.trim() || null,
       fecha: format(fechaSeleccionada, 'yyyy-MM-dd'),
       hora: horaSeleccionada,
       estado: 'pendiente',
@@ -138,6 +141,7 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
 
     const fechaLegible = format(fechaSeleccionada, "EEEE d 'de' MMMM", { locale: es })
     const notifs: Promise<void>[] = []
+
     if (barbero.telefono) {
       notifs.push(fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to: barbero.telefono, mensaje: `Nueva cita\nCliente: ${nombre.trim()}\nServicio: ${servicioSeleccionado.nombre}\nFecha: ${fechaLegible} a las ${horaSeleccionada}${telefono.trim() ? `\nTel: ${telefono.trim()}` : ''}` }) }).then(() => {}))
@@ -146,8 +150,28 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
       notifs.push(fetch('/api/notify', { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to: telefono.trim(), mensaje: `Hola ${nombre.trim()}, tu cita está confirmada.\nBarbero: ${barbero.nombre}\nServicio: ${servicioSeleccionado.nombre}\nFecha: ${fechaLegible} a las ${horaSeleccionada}` }) }).then(() => {}))
     }
+
+    let correoConfirmado = false
+    if (email.trim()) {
+      const emailRes = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: email.trim(),
+          nombre: nombre.trim(),
+          barberoNombre: barbero.nombre,
+          servicioNombre: servicioSeleccionado.nombre,
+          fechaLegible,
+          hora: horaSeleccionada,
+          precio: servicioSeleccionado.precio,
+        }),
+      }).then((r) => r.json()).catch(() => ({ ok: false }))
+      correoConfirmado = emailRes.ok && !emailRes.skipped
+    }
+
     await Promise.allSettled(notifs)
     setCargando(false)
+    setEmailEnviado(correoConfirmado)
     setCitaCreada(true)
   }
 
@@ -163,9 +187,14 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
         <p className="font-serif italic mb-2 text-lg" style={{ color: 'var(--gold)' }}>Reserva confirmada</p>
         <h2 className="font-serif text-4xl font-bold mb-3">¡Hasta pronto, {nombre}!</h2>
         <p className="text-white/50 text-lg mb-1">{servicioSeleccionado?.nombre} con {barbero.nombre}</p>
-        <p className="text-white/40 mb-10 capitalize">
+        <p className="text-white/40 mb-6 capitalize">
           {fechaSeleccionada && format(fechaSeleccionada, "EEEE d 'de' MMMM", { locale: es })} · {horaSeleccionada}
         </p>
+        {emailEnviado && (
+          <p className="text-sm mb-8 px-4 py-2.5 rounded-xl" style={{ color: 'var(--gold)', background: 'var(--gold-glass)', border: '1px solid var(--gold-border)' }}>
+            Confirmación enviada a {email}
+          </p>
+        )}
         <a
           href="/"
           className="inline-block text-sm font-medium px-10 py-4 transition-all hover:opacity-80"
@@ -290,7 +319,15 @@ export default function ReservaForm({ barbero, servicios, horarios }: Props) {
               className="w-full px-4 py-3.5 text-base text-white placeholder-white/30 focus:outline-none transition-all"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-sm)' }}
             />
-            <p className="text-white/30 text-xs text-center">Con tu teléfono recibirás confirmación por mensaje.</p>
+            <input
+              type="email"
+              placeholder="Tu correo (opcional)"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3.5 text-base text-white placeholder-white/30 focus:outline-none transition-all"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--dark-border)', borderRadius: 'var(--radius-sm)' }}
+            />
+            <p className="text-white/30 text-xs text-center">Con tu correo recibirás confirmación por email.</p>
 
             {error && <p className="text-red-400 text-sm text-center">{error}</p>}
 

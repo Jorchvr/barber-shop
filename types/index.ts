@@ -27,7 +27,8 @@ export interface Cita {
   barbero_id: string
   servicio_id: string
   cliente_nombre: string
-  cliente_telefono: string
+  cliente_telefono: string | null
+  cliente_email: string | null
   fecha: string      // "2024-01-15"
   hora: string       // "10:00"
   estado: 'pendiente' | 'completada' | 'cancelada'
